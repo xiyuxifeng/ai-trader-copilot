@@ -1,0 +1,54 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ai-trader.local/schemas/recommendation-facts-v0.schema.json",
+  "title": "RecommendationFacts v0",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "instrument_id",
+    "action",
+    "risk_level",
+    "generated_at",
+    "data_as_of",
+    "valid_until",
+    "triggers",
+    "invalidations",
+    "facts",
+    "playbook_version",
+    "rule_versions",
+    "risk_policy_version",
+    "dataset_version"
+  ],
+  "properties": {
+    "schema_version": { "const": "recommendation-facts-v0" },
+    "instrument_id": { "type": "string", "pattern": "^[0-9]{6}\\.(SH|SZ|BJ)$" },
+    "action": { "enum": ["observe", "wait", "hold", "reduce", "exit", "no_recommendation"] },
+    "risk_level": { "enum": ["low", "medium", "high", "blocked"] },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "data_as_of": { "type": "string", "format": "date-time" },
+    "valid_until": { "type": "string", "format": "date-time" },
+    "triggers": { "type": "array", "items": { "$ref": "#/$defs/fact" }, "maxItems": 10 },
+    "invalidations": { "type": "array", "items": { "$ref": "#/$defs/fact" }, "minItems": 1, "maxItems": 10 },
+    "facts": { "type": "array", "items": { "$ref": "#/$defs/fact" }, "minItems": 1, "maxItems": 30 },
+    "playbook_version": { "type": "string", "minLength": 1 },
+    "rule_versions": { "type": "array", "items": { "type": "string", "minLength": 1 }, "uniqueItems": true },
+    "risk_policy_version": { "type": "integer", "minimum": 1 },
+    "dataset_version": { "type": "string", "minLength": 1 },
+    "blocked_reason": { "type": ["string", "null"], "maxLength": 500 }
+  },
+  "$defs": {
+    "fact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["label", "value", "source"],
+      "properties": {
+        "label": { "type": "string", "minLength": 1, "maxLength": 120 },
+        "value": { "type": ["string", "number", "boolean"] },
+        "unit": { "type": ["string", "null"], "maxLength": 30 },
+        "source": { "type": "string", "minLength": 1, "maxLength": 160 }
+      }
+    }
+  }
+}
+

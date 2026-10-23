@@ -1,0 +1,92 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ai-trader.local/schemas/rule-dsl-v0.schema.json",
+  "title": "Rule DSL v0",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "name",
+    "universe",
+    "regime",
+    "inputs",
+    "entry",
+    "hold",
+    "exit",
+    "invalidate",
+    "risk",
+    "execution",
+    "evidence_refs"
+  ],
+  "properties": {
+    "schema_version": { "const": "rule-dsl-v0" },
+    "name": { "type": "string", "minLength": 1, "maxLength": 120 },
+    "universe": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["market", "include", "exclude"],
+      "properties": {
+        "market": { "const": "a_share" },
+        "include": { "type": "array", "items": { "type": "string" }, "maxItems": 20 },
+        "exclude": { "type": "array", "items": { "type": "string" }, "maxItems": 20 }
+      }
+    },
+    "regime": { "type": "array", "items": { "enum": ["any", "trend", "range", "high_volatility", "risk_off"] }, "minItems": 1, "uniqueItems": true },
+    "inputs": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 30,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["name", "field", "frequency", "window", "available_at"],
+        "properties": {
+          "name": { "type": "string", "pattern": "^[a-z][a-z0-9_]*$" },
+          "field": { "enum": ["open", "high", "low", "close", "volume", "turnover", "trade_status", "limit_up", "limit_down", "adjustment_factor"] },
+          "frequency": { "const": "1d" },
+          "window": { "type": "integer", "minimum": 1, "maximum": 504 },
+          "available_at": { "enum": ["market_close", "next_trading_day"] }
+        }
+      }
+    },
+    "entry": { "$ref": "#/$defs/expression" },
+    "hold": { "$ref": "#/$defs/expression" },
+    "exit": { "$ref": "#/$defs/expression" },
+    "invalidate": { "$ref": "#/$defs/expression" },
+    "risk": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["max_position", "stop_loss", "min_turnover"],
+      "properties": {
+        "max_position": { "type": "number", "exclusiveMinimum": 0, "maximum": 0.5 },
+        "stop_loss": { "type": ["number", "null"], "minimum": 0, "maximum": 0.5 },
+        "min_turnover": { "type": ["number", "null"], "minimum": 0 }
+      }
+    },
+    "execution": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["signal_time", "earliest_execution", "price_model", "t_plus_one", "cost_model_version"],
+      "properties": {
+        "signal_time": { "const": "market_close" },
+        "earliest_execution": { "const": "next_trading_day" },
+        "price_model": { "enum": ["next_open", "next_vwap"] },
+        "t_plus_one": { "const": true },
+        "cost_model_version": { "type": "string", "minLength": 1 }
+      }
+    },
+    "evidence_refs": { "type": "array", "items": { "type": "string", "format": "uuid" }, "minItems": 1, "uniqueItems": true }
+  },
+  "$defs": {
+    "expression": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["operator", "operands"],
+      "properties": {
+        "operator": { "enum": ["and", "or", "not", "gt", "gte", "lt", "lte", "crosses_above", "crosses_below"] },
+        "operands": { "type": "array", "minItems": 1, "maxItems": 8, "items": { "type": ["string", "number", "boolean", "object"] } }
+      }
+    }
+  }
+}
+

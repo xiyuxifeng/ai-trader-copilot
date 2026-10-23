@@ -1,0 +1,12 @@
+{
+  "name": "ai-trader-copilot",
+  "private": true,
+  "packageManager": "pnpm@9.15.4",
+  "scripts": {
+    "web:dev": "pnpm --dir apps/web dev",
+    "web:build": "pnpm --dir apps/web build",
+    "web:e2e": "pnpm --dir apps/web e2e",
+    "web:test": "pnpm --dir apps/web test",
+    "web:lint": "pnpm --dir apps/web lint"
+  }
+}

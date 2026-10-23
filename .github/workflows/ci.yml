@@ -1,0 +1,78 @@
+name: CI
+
+on:
+  push:
+    branches: [main, goal/mvp]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_DB: ai_trader_test
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      AI_TRADER_DATABASE_URL: postgresql+psycopg://postgres:postgres@127.0.0.1:5432/ai_trader_test
+      AI_TRADER_WEB_ORIGIN: http://127.0.0.1:5173
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+
+      - uses: astral-sh/setup-uv@v10
+        with:
+          version: "0.13.5"
+          enable-cache: true
+
+      - name: Install Python dependencies
+        run: uv sync --frozen
+
+      - name: Check Python
+        run: |
+          uv run ruff check .
+          uv run pytest
+
+      - name: Verify database migration
+        run: |
+          uv run alembic upgrade head
+          uv run alembic downgrade base
+          uv run alembic upgrade head
+
+      - uses: pnpm/action-setup@v6
+        with:
+          version: 9.15.4
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "22"
+          cache: pnpm
+
+      - name: Install Web dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Check Web
+        run: |
+          pnpm web:lint
+          pnpm web:test
+          pnpm web:build
+
+      - name: Install browser
+        run: pnpm --dir apps/web exec playwright install --with-deps chromium
+
+      - name: Browser acceptance
+        run: pnpm web:e2e
+

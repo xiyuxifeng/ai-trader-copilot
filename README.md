@@ -73,3 +73,43 @@ flowchart LR
 - 开发中：任何功能变更先修改对应需求和验收条款，再修改实现。
 - 冲突优先级：产品边界与安全约束 > 验收门禁 > 架构建议 > 技术实现偏好。
 
+## 当前实现状态
+
+开发分支：`goal/mvp`
+
+当前已实现第一条工程切片：首次设置、风险政策版本、后台 Worker 健康状态和真实空状态“今天”页。行情、AI、文章学习和股票建议尚未接入，产品会如实显示不可用状态。
+
+实施证据与未完成门禁见 [docs/implementation-log.md](docs/implementation-log.md)。
+
+## 本地开发
+
+要求：Python 3.12、uv、Node.js 22、pnpm 9 和 PostgreSQL 15+。
+
+```bash
+createdb ai_trader_copilot
+cp .env.example .env
+uv sync
+uv run alembic upgrade head
+pnpm install
+```
+
+分别启动三个进程：
+
+```bash
+uv run uvicorn ai_trader.api.main:app --host 127.0.0.1 --port 8000
+uv run python -m ai_trader.worker.main
+pnpm web:dev
+```
+
+浏览器打开 `http://127.0.0.1:5173`。
+
+## 质量检查
+
+```bash
+uv run ruff check .
+uv run pytest
+pnpm web:lint
+pnpm web:test
+pnpm web:build
+pnpm web:e2e
+```

@@ -1,0 +1,17 @@
+.DS_Store
+.env
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+node_modules/
+*.tsbuildinfo
+apps/web/dist/
+apps/web/playwright-report/
+apps/web/test-results/
+var/
+*.db
+*.sqlite3
