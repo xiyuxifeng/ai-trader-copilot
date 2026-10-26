@@ -1,3 +1,11 @@
+from ai_trader.domain.market_data import (
+    AdjustmentFactor,
+    AvailabilityBasis,
+    DailyBar,
+    TradeCalendarDay,
+    TradeStatus,
+    VolumeUnit,
+)
 from ai_trader.domain.profile import (
     HoldingHorizon,
     Market,
@@ -13,6 +21,11 @@ __all__ = [
     "RiskLevel",
     "RiskPolicy",
     "UserProfile",
+    "AdjustmentFactor",
+    "AvailabilityBasis",
+    "DailyBar",
+    "TradeCalendarDay",
+    "TradeStatus",
+    "VolumeUnit",
     "build_risk_policy",
 ]
-

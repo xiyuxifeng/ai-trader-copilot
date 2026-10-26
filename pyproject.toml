@@ -5,13 +5,21 @@ description = "A traceable AI trading decision-support copilot"
 readme = "README.md"
 requires-python = ">=3.12,<3.13"
 dependencies = [
+  "akshare>=1.19.3,<2",
   "alembic>=1.16,<2",
+  "baostock>=0.9.4,<1",
   "fastapi>=0.116,<1",
+  "polars>=2,<3",
   "psycopg[binary]>=3.2,<4",
   "pydantic-settings>=2.10,<3",
   "sqlalchemy>=2.0,<3",
   "uvicorn[standard]>=0.35,<1",
 ]
+
+[project.scripts]
+ai-trader-data-inventory = "ai_trader.maintenance.market_inventory:main"
+ai-trader-market-compare = "ai_trader.maintenance.market_compare:main"
+ai-trader-market-probe = "ai_trader.maintenance.market_probe:main"
 
 [dependency-groups]
 dev = [

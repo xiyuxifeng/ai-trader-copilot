@@ -77,7 +77,7 @@ flowchart LR
 
 开发分支：`goal/mvp`
 
-当前已实现第一条工程切片：首次设置、风险政策版本、后台 Worker 健康状态和真实空状态“今天”页。行情、AI、文章学习和股票建议尚未接入，产品会如实显示不可用状态。
+当前已实现首次设置、风险政策版本、后台 Worker 健康状态和真实空状态“今天”页。数据侧已建立免费行情适配器契约、阻断式质量门、Parquet 数据集清单和旧数据只读盘点工具；免费来源尚未通过 P0 验证，因此行情、AI、文章学习和股票建议仍会如实显示不可用。
 
 实施证据与未完成门禁见 [docs/implementation-log.md](docs/implementation-log.md)。
 
@@ -88,7 +88,7 @@ flowchart LR
 ```bash
 createdb ai_trader_copilot
 cp .env.example .env
-uv sync
+uv sync --all-groups
 uv run alembic upgrade head
 pnpm install
 ```
@@ -113,3 +113,26 @@ pnpm web:test
 pnpm web:build
 pnpm web:e2e
 ```
+
+## 行情数据维护工具
+
+旧电脑上的 CSV/Parquet 先只生成结构清单，不复制原始数据：
+
+```bash
+uv run ai-trader-data-inventory /path/to/export --output market-data-inventory.json
+```
+
+验证 BaoStock 免费日线时只输出统计与质量摘要：
+
+```bash
+uv run ai-trader-market-probe \
+  --provider baostock \
+  --start 2024-01-02 --end 2024-03-29 \
+  --instrument 600000.XSHG --instrument 000001.XSHE
+
+uv run ai-trader-market-compare \
+  --start 2024-01-02 --end 2024-03-29 \
+  --instrument 600000.XSHG --instrument 000001.XSHE
+```
+
+工具属于维护面，不会成为用户日常操作步骤。原始行情、数据库转储和探针输出不得提交到 Git。

@@ -6,4 +6,4 @@
 - [ADR-004：列式行情分析](0004-columnar-market-data.md)
 - [ADR-005：正式规则需要确认](0005-rule-activation.md)
 - [ADR-006：三入口产品界面](0006-three-entry-ui.md)
-
+- [ADR-007：免费行情与旧数据迁移边界](0007-free-market-data-and-legacy-import.md)
