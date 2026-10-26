@@ -7,7 +7,13 @@ from pathlib import Path
 from typing import Protocol
 
 from ai_trader.application.market_data_quality import validate_daily_bars
-from ai_trader.domain.market_data import AdjustmentFactor, DailyBar, TradeCalendarDay
+from ai_trader.domain.market_data import (
+    AdjustmentFactor,
+    DailyBar,
+    InstrumentMetadata,
+    TradeCalendarDay,
+    TradeStatus,
+)
 from ai_trader.infrastructure.market_data.akshare_provider import AKShareMarketDataProvider
 from ai_trader.infrastructure.market_data.baostock_provider import BaoStockMarketDataProvider
 
@@ -27,6 +33,8 @@ class ProbeProvider(Protocol):
         self, *, instrument_id: str, start: date, end: date
     ) -> tuple[AdjustmentFactor, ...]: ...
 
+    def fetch_instrument_metadata(self, *, instrument_id: str) -> InstrumentMetadata: ...
+
 
 def run_probe(
     *, provider_name: str, instruments: tuple[str, ...], start: date, end: date
@@ -38,6 +46,10 @@ def run_probe(
         provider = AKShareMarketDataProvider()
     else:
         raise ValueError(f"未知行情供应商：{provider_name}")
+    instruments_metadata = tuple(
+        provider.fetch_instrument_metadata(instrument_id=instrument_id)
+        for instrument_id in instruments
+    )
     calendar = provider.fetch_trade_calendar(start=start, end=end)
     bars = tuple(
         bar
@@ -53,7 +65,7 @@ def run_probe(
             instrument_id=instrument_id, start=start, end=end
         )
     )
-    report = validate_daily_bars(bars, calendar, factors)
+    report = validate_daily_bars(bars, calendar, factors, instruments_metadata)
     return {
         "schema_version": "market-provider-probe-v0",
         "provider": provider_name,
@@ -68,6 +80,24 @@ def run_probe(
             "calendar_rows": len(calendar),
             "trading_days": sum(day.is_trading_day for day in calendar),
             "factor_rows": len(factors),
+            "factor_events_in_range": sum(
+                start <= factor.effective_date <= end for factor in factors
+            ),
+            "suspended_rows": sum(
+                bar.trade_status is TradeStatus.SUSPENDED for bar in bars
+            ),
+            "st_rows": sum(bar.is_st is True for bar in bars),
+            "instrument_metadata": [
+                {
+                    "instrument_id": item.instrument_id,
+                    "instrument_type": item.instrument_type,
+                    "listed_on": item.listed_on.isoformat() if item.listed_on else None,
+                    "delisted_on": (
+                        item.delisted_on.isoformat() if item.delisted_on else None
+                    ),
+                }
+                for item in instruments_metadata
+            ],
             "source_revisions": sorted({bar.source_revision for bar in bars}),
         },
         "quality": {

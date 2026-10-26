@@ -1,9 +1,10 @@
 from datetime import date
 
 import pandas as pd
+import pytest
 
 from ai_trader.application.market_data_quality import validate_daily_bars
-from ai_trader.domain.market_data import TradeStatus, VolumeUnit
+from ai_trader.domain.market_data import InstrumentType, TradeStatus, VolumeUnit
 from ai_trader.infrastructure.market_data.akshare_provider import AKShareMarketDataProvider
 
 
@@ -40,12 +41,25 @@ def test_maps_akshare_lots_to_shares_but_blocks_missing_factors() -> None:
     factors = provider.fetch_adjustment_factors(
         instrument_id="600000.XSHG", start=start, end=end
     )
-    report = validate_daily_bars(bars, calendar, factors)
+    metadata = provider.fetch_instrument_metadata(instrument_id="600000.XSHG")
+    report = validate_daily_bars(bars, calendar, factors, (metadata,))
 
     assert bars[0].volume == 1000
     assert bars[0].volume_unit is VolumeUnit.SHARES
     assert bars[0].volume_resolution == 100
     assert bars[0].trade_status is TradeStatus.NORMAL
+    assert metadata.instrument_type is InstrumentType.EQUITY
     assert factors == ()
     assert report.accepted is False
     assert [issue.code for issue in report.issues] == ["missing_adjustment_factor"]
+
+
+def test_rejects_index_before_calling_stock_endpoint() -> None:
+    provider = AKShareMarketDataProvider(client=FakeAKShare(), timeout_seconds=9)
+
+    with pytest.raises(ValueError, match="股票接口不能用于指数代码"):
+        provider.fetch_daily_bars(
+            instrument_id="000001.XSHG",
+            start=date(2024, 1, 2),
+            end=date(2024, 1, 3),
+        )

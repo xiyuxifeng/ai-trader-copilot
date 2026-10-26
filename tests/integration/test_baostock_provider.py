@@ -1,7 +1,12 @@
 from datetime import date
 from types import SimpleNamespace
 
-from ai_trader.domain.market_data import AvailabilityBasis, TradeStatus, VolumeUnit
+from ai_trader.domain.market_data import (
+    AvailabilityBasis,
+    InstrumentType,
+    TradeStatus,
+    VolumeUnit,
+)
 from ai_trader.infrastructure.market_data.baostock_provider import BaoStockMarketDataProvider
 
 
@@ -71,6 +76,21 @@ class FakeBaoStock:
             ]
         )
 
+    def query_stock_basic(self, **kwargs) -> FakeResult:
+        assert kwargs["code"] == "sh.600000"
+        return FakeResult(
+            [
+                {
+                    "code": "sh.600000",
+                    "code_name": "浦发银行",
+                    "ipoDate": "1999-11-10",
+                    "outDate": "",
+                    "type": "1",
+                    "status": "1",
+                }
+            ]
+        )
+
 
 def test_maps_unadjusted_bars_calendar_and_factors() -> None:
     client = FakeBaoStock()
@@ -82,6 +102,7 @@ def test_maps_unadjusted_bars_calendar_and_factors() -> None:
     factors = provider.fetch_adjustment_factors(
         instrument_id="600000.XSHG", start=start, end=end
     )
+    metadata = provider.fetch_instrument_metadata(instrument_id="600000.XSHG")
 
     assert bars[0].instrument_id == "600000.XSHG"
     assert bars[0].trade_status is TradeStatus.NORMAL
@@ -90,5 +111,8 @@ def test_maps_unadjusted_bars_calendar_and_factors() -> None:
     assert bars[0].volume_resolution == 1
     assert calendar[0].is_trading_day is True
     assert str(factors[0].raw_factor) == "1.0"
+    assert metadata.instrument_type is InstrumentType.EQUITY
+    assert metadata.listed_on == date(1999, 11, 10)
+    assert metadata.delisted_on is None
     assert client.logged_out is True
 

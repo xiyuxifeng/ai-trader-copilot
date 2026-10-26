@@ -1,0 +1,76 @@
+{
+  "schema_version": "market-boundary-validation-v0",
+  "executed_on": "2026-10-26",
+  "provider": "baostock",
+  "source_revision": "baostock-python-0.9.4",
+  "contains_raw_market_rows": false,
+  "execution_mode": "sequential",
+  "samples": [
+    {
+      "name": "suspended",
+      "instrument_id": "600485.XSHG",
+      "start": "2018-01-02",
+      "end": "2018-01-31",
+      "bar_rows": 22,
+      "trading_days": 22,
+      "suspended_rows": 22,
+      "coverage_ratio": "1",
+      "accepted": true
+    },
+    {
+      "name": "st",
+      "instrument_id": "600221.XSHG",
+      "start": "2021-04-01",
+      "end": "2021-04-30",
+      "bar_rows": 21,
+      "trading_days": 21,
+      "st_rows": 21,
+      "coverage_ratio": "1",
+      "accepted": true
+    },
+    {
+      "name": "delisted",
+      "instrument_id": "600485.XSHG",
+      "start": "2021-05-17",
+      "end": "2021-06-30",
+      "listed_on": "2003-08-07",
+      "delisted_on": "2021-06-01",
+      "bar_rows": 12,
+      "eligible_trading_days": 12,
+      "coverage_ratio": "1",
+      "accepted": true
+    },
+    {
+      "name": "adjustment",
+      "instrument_id": "600000.XSHG",
+      "start": "2023-01-01",
+      "end": "2025-12-31",
+      "bar_rows": 727,
+      "trading_days": 727,
+      "factor_rows": 4,
+      "factor_events_in_range": 3,
+      "coverage_ratio": "1",
+      "accepted": true
+    },
+    {
+      "name": "index",
+      "instrument_id": "000001.XSHG",
+      "instrument_type": "index",
+      "start": "2024-01-02",
+      "end": "2024-01-31",
+      "bar_rows": 22,
+      "trading_days": 22,
+      "factor_rows": 0,
+      "coverage_ratio": "1",
+      "accepted": true
+    }
+  ],
+  "stability_observation": {
+    "successful_sequential_boundary_probes": 5,
+    "immediate_follow_up_factor_query": "failed",
+    "elapsed_seconds": 15.6,
+    "error_code": "10002007",
+    "error_summary": "network receive error followed by hard timeout",
+    "conclusion": "boundary semantics passed; provider stability remains unaccepted"
+  }
+}

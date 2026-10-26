@@ -11,6 +11,8 @@ from ai_trader.domain.market_data import (
     AdjustmentFactor,
     AvailabilityBasis,
     DailyBar,
+    InstrumentMetadata,
+    InstrumentType,
     TradeCalendarDay,
     TradeStatus,
     VolumeUnit,
@@ -108,6 +110,18 @@ class AKShareMarketDataProvider:
         _symbol(instrument_id)
         return ()
 
+    def fetch_instrument_metadata(self, *, instrument_id: str) -> InstrumentMetadata:
+        _symbol(instrument_id)
+        return InstrumentMetadata(
+            instrument_id=instrument_id,
+            instrument_type=InstrumentType.EQUITY,
+            listed_on=None,
+            delisted_on=None,
+            provider="akshare-eastmoney",
+            source_revision=self._source_revision,
+            ingested_at=datetime.now(UTC),
+        )
+
 
 def _symbol(instrument_id: str) -> str:
     try:
@@ -116,6 +130,10 @@ def _symbol(instrument_id: str) -> str:
         raise ValueError("证券代码必须使用 600000.XSHG 格式") from error
     if exchange not in {"XSHG", "XSHE"} or len(code) != 6 or not code.isdigit():
         raise ValueError("AKShare 候选适配器当前只验证沪深六位证券代码")
+    if (exchange == "XSHG" and code.startswith("000")) or (
+        exchange == "XSHE" and code.startswith("399")
+    ):
+        raise ValueError("AKShare 股票接口不能用于指数代码；指数候选源尚未通过 P0 验证")
     return code
 
 

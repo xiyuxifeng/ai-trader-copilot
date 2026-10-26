@@ -14,6 +14,8 @@ from ai_trader.domain.market_data import (
     AdjustmentFactor,
     AvailabilityBasis,
     DailyBar,
+    InstrumentMetadata,
+    InstrumentType,
     TradeCalendarDay,
     TradeStatus,
     VolumeUnit,
@@ -156,6 +158,36 @@ class BaoStockMarketDataProvider:
         in_range = tuple(factor for factor in factors if start <= factor.effective_date <= end)
         return ((baseline,) if baseline else ()) + in_range
 
+    def fetch_instrument_metadata(self, *, instrument_id: str) -> InstrumentMetadata:
+        provider_code = _to_provider_code(instrument_id)
+        ingested_at = datetime.now(UTC)
+        with self._session():
+            rows = _read_result(self._client.query_stock_basic(code=provider_code))
+        if len(rows) != 1:
+            raise MarketDataProviderError(
+                f"BaoStock 证券主数据应返回 1 行，实际返回 {len(rows)} 行：{instrument_id}"
+            )
+        row = rows[0]
+        instrument_types = {
+            "1": InstrumentType.EQUITY,
+            "2": InstrumentType.INDEX,
+            "3": InstrumentType.OTHER,
+        }
+        instrument_type = instrument_types.get(row.get("type", ""))
+        if instrument_type is None:
+            raise MarketDataProviderError(
+                f"BaoStock 返回未知证券类型：{row.get('type', '')} ({instrument_id})"
+            )
+        return InstrumentMetadata(
+            instrument_id=_to_instrument_id(row["code"]),
+            instrument_type=instrument_type,
+            listed_on=_date_or_none(row.get("ipoDate")),
+            delisted_on=_date_or_none(row.get("outDate")),
+            provider="baostock",
+            source_revision=self._source_revision,
+            ingested_at=ingested_at,
+        )
+
     @contextmanager
     def _session(self) -> Iterator[None]:
         # BaoStock 0.9.x does not expose connect/read timeouts and uses one
@@ -237,6 +269,10 @@ def _decimal_or_none(value: str | None) -> Decimal | None:
 
 def _decimal_or_zero(value: str | None) -> Decimal:
     return Decimal(value) if value not in (None, "") else Decimal(0)
+
+
+def _date_or_none(value: str | None) -> date | None:
+    return date.fromisoformat(value) if value not in (None, "") else None
 
 
 def _conservative_available_at(trading_date: date) -> datetime:

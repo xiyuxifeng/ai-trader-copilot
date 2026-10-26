@@ -2,7 +2,12 @@ from dataclasses import dataclass
 from datetime import date, datetime
 from typing import Protocol
 
-from ai_trader.domain.market_data import AdjustmentFactor, DailyBar, TradeCalendarDay
+from ai_trader.domain.market_data import (
+    AdjustmentFactor,
+    DailyBar,
+    InstrumentMetadata,
+    TradeCalendarDay,
+)
 
 
 class ProviderNotConfigured(RuntimeError):
@@ -41,6 +46,8 @@ class MarketDataProvider(Protocol):
         self, *, instrument_id: str, start: date, end: date
     ) -> tuple[AdjustmentFactor, ...]: ...
 
+    def fetch_instrument_metadata(self, *, instrument_id: str) -> InstrumentMetadata: ...
+
 
 class ArticleSourceAdapter(Protocol):
     def load(self, request: dict[str, object]) -> dict[str, object]: ...
@@ -75,4 +82,7 @@ class UnconfiguredMarketDataProvider:
     def fetch_adjustment_factors(
         self, *, instrument_id: str, start: date, end: date
     ) -> tuple[AdjustmentFactor, ...]:
+        raise ProviderNotConfigured("行情服务尚未配置")
+
+    def fetch_instrument_metadata(self, *, instrument_id: str) -> InstrumentMetadata:
         raise ProviderNotConfigured("行情服务尚未配置")

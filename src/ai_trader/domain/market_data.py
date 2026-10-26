@@ -21,6 +21,23 @@ class VolumeUnit(StrEnum):
     UNKNOWN = "unknown"
 
 
+class InstrumentType(StrEnum):
+    EQUITY = "equity"
+    INDEX = "index"
+    OTHER = "other"
+
+
+@dataclass(frozen=True, slots=True)
+class InstrumentMetadata:
+    instrument_id: str
+    instrument_type: InstrumentType
+    listed_on: date | None
+    delisted_on: date | None
+    provider: str
+    source_revision: str
+    ingested_at: datetime
+
+
 @dataclass(frozen=True, slots=True)
 class DailyBar:
     instrument_id: str

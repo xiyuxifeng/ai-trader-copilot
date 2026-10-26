@@ -1,0 +1,59 @@
+{
+  "schema_version": "market-boundary-cases-v0",
+  "cases": [
+    {
+      "name": "t_plus_one_availability",
+      "instrument": {"id": "600000.XSHG", "type": "equity", "listed_on": "1999-11-10"},
+      "calendar": ["2024-01-02"],
+      "bars": [{"date": "2024-01-02", "available_at": "2024-01-03T00:00:00+08:00"}],
+      "expected": {"accepted": true, "coverage_ratio": "1", "issue_codes": []}
+    },
+    {
+      "name": "price_limit_bar",
+      "instrument": {"id": "600000.XSHG", "type": "equity", "listed_on": "1999-11-10"},
+      "calendar": ["2024-01-03"],
+      "bars": [{"date": "2024-01-03", "open": "11", "high": "11", "low": "11", "close": "11", "previous_close": "10"}],
+      "expected": {"accepted": true, "coverage_ratio": "1", "issue_codes": []}
+    },
+    {
+      "name": "suspended_zero_activity",
+      "instrument": {"id": "600485.XSHG", "type": "equity", "listed_on": "2003-08-07", "delisted_on": "2021-06-01"},
+      "calendar": ["2018-01-02"],
+      "bars": [{"date": "2018-01-02", "open": null, "high": null, "low": null, "close": null, "previous_close": "14.59", "volume": "0", "turnover": "0", "trade_status": "suspended"}],
+      "expected": {"accepted": true, "coverage_ratio": "1", "issue_codes": []}
+    },
+    {
+      "name": "st_equity",
+      "instrument": {"id": "600221.XSHG", "type": "equity", "listed_on": "1999-11-25"},
+      "calendar": ["2021-04-01"],
+      "bars": [{"date": "2021-04-01", "is_st": true}],
+      "expected": {"accepted": true, "coverage_ratio": "1", "issue_codes": []}
+    },
+    {
+      "name": "adjustment_event_with_baseline",
+      "instrument": {"id": "600000.XSHG", "type": "equity", "listed_on": "1999-11-10"},
+      "calendar": ["2024-06-14"],
+      "bars": [{"date": "2024-06-14"}],
+      "factors": [
+        {"effective_date": "1999-11-10", "forward": "1", "backward": "1", "raw": "1"},
+        {"effective_date": "2024-06-14", "forward": "0.75", "backward": "1.25", "raw": "1.25"}
+      ],
+      "expected": {"accepted": true, "coverage_ratio": "1", "issue_codes": []}
+    },
+    {
+      "name": "delisted_listing_window",
+      "instrument": {"id": "600485.XSHG", "type": "equity", "listed_on": "2003-08-07", "delisted_on": "2021-06-01"},
+      "calendar": ["2021-05-31", "2021-06-01", "2021-06-02"],
+      "bars": [{"date": "2021-05-31"}, {"date": "2021-06-01"}],
+      "expected": {"accepted": true, "coverage_ratio": "1", "issue_codes": []}
+    },
+    {
+      "name": "index_without_adjustment_factor",
+      "instrument": {"id": "000001.XSHG", "type": "index", "listed_on": "1991-07-15"},
+      "calendar": ["2024-01-02"],
+      "bars": [{"date": "2024-01-02"}],
+      "factors": [],
+      "expected": {"accepted": true, "coverage_ratio": "1", "issue_codes": []}
+    }
+  ]
+}
